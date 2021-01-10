@@ -1,5 +1,7 @@
 package org.echocat.kata.java.part1.configuration;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -30,6 +32,7 @@ public class Publications {
 	@Value("${app.csv.column-separator}")
 	private char csvColumnSeparator;
 
+	private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 	private List<Publication> publicationList = new LinkedList<>();
 
 	@PostConstruct
@@ -49,7 +52,7 @@ public class Publications {
 			authorRowStream.close();
 		}
 
-		//Put into map for fast lookups
+		// Put authors into map for fast lookups
 		authorList.stream().forEach(x -> emailAuthorMap.put(x.getEmail(), x));
 
 		// Load Books
@@ -74,14 +77,18 @@ public class Publications {
 					// skip the header row that contains the column names
 					.skip(1)
 					.map(x -> new Magazine(x.cell(0).asString(), x.cell(1).asString(),
-							getAuthors(x.cell(2).asString(), emailAuthorMap), x.cell(3).asString()))
+							getAuthors(x.cell(2).asString(), emailAuthorMap), getDate(x.cell(3).asString())))
 					.collect(Collectors.toList()));
 
 			magazineRowStream.close();
 		}
 	}
 
-	public List<Publication> getPublications(){
+	private LocalDate getDate(String date) {
+		return LocalDate.parse(date, dateFormatter);
+	}
+
+	public List<Publication> getPublications() {
 		return publicationList;
 	}
 
